@@ -60,6 +60,7 @@ class DownloadService : Service() {
                 canceled.add(id)
                 if (runningId == id) YoutubeDL.getInstance().destroyProcessById(id)
                 update(id, "Cancelado", detail = "Interrompido pelo usuário")
+                if (!processing.get() && waiting.isEmpty()) stopSelfResult(startId)
             }
             ACTION_ADD -> {
                 val payload = intent.getStringExtra(EXTRA_JOBS) ?: return START_NOT_STICKY
