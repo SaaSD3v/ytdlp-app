@@ -27,7 +27,7 @@ object YtDlpEngine {
             .addOption("--flat-playlist")
             .addOption("--skip-download")
             .addOption("--no-warnings")
-        val root = JSONObject(YoutubeDL.getInstance().execute(request).out.trim())
+        val root = JSONObject(YoutubeDL.getInstance().execute(request, null, null).out.trim())
         val entries = root.optJSONArray("entries")
         if (entries != null) {
             val tracks = buildList {
@@ -52,7 +52,7 @@ object YtDlpEngine {
                 val detail = YoutubeDLRequest(url)
                     .addOption("--dump-single-json").addOption("--no-playlist")
                     .addOption("--skip-download").addOption("--no-warnings")
-                JSONObject(YoutubeDL.getInstance().execute(detail).out.trim())
+                JSONObject(YoutubeDL.getInstance().execute(detail, null, null).out.trim())
             } else root
             Inspection.Media(
                 url, full.optString("title", "Mídia"), full.optString("uploader"),

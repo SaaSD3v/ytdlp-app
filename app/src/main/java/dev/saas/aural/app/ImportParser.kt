@@ -33,6 +33,11 @@ object ImportParser {
             is JSONArray -> for (i in 0 until value.length()) visit(value.opt(i), found, depth + 1)
             is JSONObject -> {
                 for (key in urlKeys) if (value.has(key)) visit(value.opt(key), found, depth + 1)
+                val extractor = value.optString("ie_key", value.optString("extractor_key"))
+                val id = value.optString("id")
+                if (extractor.startsWith("Youtube", ignoreCase = true) &&
+                    id.matches(Regex("[A-Za-z0-9_-]{11}"))
+                ) add("https://www.youtube.com/watch?v=" + id, found)
                 for (key in groupKeys) if (value.has(key)) visit(value.opt(key), found, depth + 1)
             }
         }

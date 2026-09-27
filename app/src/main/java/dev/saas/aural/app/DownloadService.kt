@@ -35,6 +35,7 @@ class DownloadService : Service() {
     private val canceled = ConcurrentHashMap.newKeySet<String>()
     private val processing = AtomicBoolean(false)
     @Volatile private var runningId: String? = null
+    @Volatile private var lastStartId = 0
     private var lastProgressAt = 0L
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -52,6 +53,7 @@ class DownloadService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        lastStartId = startId
         when (intent?.action) {
             ACTION_CANCEL -> {
                 val id = intent.getStringExtra(EXTRA_ID) ?: return START_NOT_STICKY
@@ -86,11 +88,13 @@ class DownloadService : Service() {
                 }
             } finally {
                 runningId = null
+                val finishedThrough = lastStartId
                 processing.set(false)
                 if (waiting.isNotEmpty()) pump()
                 else {
-                    stopForeground(STOP_FOREGROUND_REMOVE)
-                    stopSelf()
+                    // A new start can arrive while the old queue is being drained.
+                    // stopSelfResult leaves that newer start alive.
+                    stopSelfResult(finishedThrough)
                 }
             }
         }
@@ -107,6 +111,8 @@ class DownloadService : Service() {
                 .addOption("-o", File(staging, outputTemplate(spec)).absolutePath)
                 .addOption("--no-mtime")
                 .addOption("--newline")
+                .addOption("--progress")
+                .addOption("--no-simulate")
                 .addOption("--continue")
                 .addOption("--no-overwrites")
                 .addOption("--print", "after_move:" + FILE_MARKER + "%(filepath)s")
@@ -121,7 +127,7 @@ class DownloadService : Service() {
             } else request.addOption("--no-playlist")
 
             val printed = LinkedHashSet<File>()
-            val response = YoutubeDL.getInstance().execute(request, spec.id) { percent, eta, line ->
+            val response = YoutubeDL.getInstance().execute(request, spec.id, false) { percent, eta, line ->
                 if (line.startsWith(FILE_MARKER)) printed.add(File(line.removePrefix(FILE_MARKER).trim()))
                 val now = System.currentTimeMillis()
                 if (now - lastProgressAt >= 650 && percent >= 0 && !canceled.contains(spec.id)) {
@@ -142,7 +148,7 @@ class DownloadService : Service() {
             files.forEach { file ->
                 publish(file, spec)
                 published++
-                update(spec.id, "Salvando", 99, String.valueOf(published) + "/" + files.size + " arquivos")
+                update(spec.id, "Salvando", 99, published.toString() + "/" + files.size + " arquivos")
             }
             update(spec.id, "Concluído", 100, destinationLabel(spec) + " · " + published + " arquivo(s)", published)
         } catch (error: Exception) {
@@ -225,7 +231,7 @@ class DownloadService : Service() {
         val builder = NotificationCompat.Builder(this, CHANNEL)
             .setSmallIcon(dev.saas.aural.R.drawable.ic_app)
             .setContentTitle("Aural · " + title)
-            .setContentText(if (id == null) "Preparando" else String.valueOf(percent) + "%")
+            .setContentText(if (id == null) "Preparando" else percent.toString() + "%")
             .setContentIntent(open).setOngoing(id != null)
             .setOnlyAlertOnce(true)
         if (id != null) {

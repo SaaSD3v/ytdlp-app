@@ -312,7 +312,7 @@ private fun Home(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("Downloads", fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.weight(1f))
-                    Text(String.valueOf(records.size), color = Muted)
+                    Text(records.size.toString(), color = Muted)
                 }
             }
             if (records.isEmpty()) item {
@@ -563,7 +563,7 @@ private fun CollectionSheet(
                 Column {
                     Text(title, fontSize = 21.sp, fontWeight = FontWeight.Bold, maxLines = 2)
                     Text(
-                        String.valueOf(tracks.size) + if (imported) " links" else " faixas",
+                        tracks.size.toString() + (if (imported) " links" else " faixas"),
                         color = Muted, fontSize = 12.sp
                     )
                 }
@@ -592,7 +592,7 @@ private fun CollectionSheet(
                     selected = if (selected.size == tracks.size) emptySet() else tracks.map { it.index }.toSet()
                 }) { Text(if (selected.size == tracks.size) "Desmarcar tudo" else "Selecionar tudo") }
                 Spacer(Modifier.weight(1f))
-                Text(String.valueOf(selected.size) + " selecionados", color = Muted, fontSize = 12.sp)
+                Text(selected.size.toString() + " selecionados", color = Muted, fontSize = 12.sp)
             }
             if (tracks.size > 8) OutlinedTextField(
                 value = query, onValueChange = { query = it },

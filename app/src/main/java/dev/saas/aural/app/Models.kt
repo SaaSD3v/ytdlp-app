@@ -24,12 +24,12 @@ data class StreamFormat(
     val videoOnly get() = hasVideo && !hasAudio
 
     fun description(): String = buildList {
-        if (hasVideo) add(if (height > 0) String.valueOf(height) + "p" else "Vídeo")
-        if (hasVideo && fps > 0) add(String.valueOf(fps.toInt()) + " fps")
+        if (hasVideo) add(if (height > 0) height.toString() + "p" else "Vídeo")
+        if (hasVideo && fps > 0) add(fps.toInt().toString() + " fps")
         if (hasVideo) add(vcodec)
         if (hasAudio) add(acodec)
-        if (hasAudio && abr > 0) add(String.valueOf(abr.toInt()) + " kb/s")
-        if (hasAudio && asr > 0) add(String.valueOf(asr / 1000) + " kHz")
+        if (hasAudio && abr > 0) add(abr.toInt().toString() + " kb/s")
+        if (hasAudio && asr > 0) add((asr / 1000).toString() + " kHz")
         add(ext.uppercase())
         if (bytes > 0) add(String.format("%.1f MB", bytes / 1_000_000.0))
     }.joinToString(" · ")
